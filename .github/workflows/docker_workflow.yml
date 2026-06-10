@@ -1,0 +1,37 @@
+name: docker and github actions
+
+on:
+  push:
+    branches: [main]
+jobs:
+  db-test:
+    runs-on: ubuntu-latest
+    container: node:20
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: password123
+          POSTGRES_DB: mydatabase
+        ports:
+          - 5432:5432
+        options: >- 
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: install postgresql client
+        run: |
+         apt-get update
+         apt-get install -y postgresql-client
+      - name: test conection
+        env: 
+           PGPASSWORD: password123
+        run: |
+          echo "trying to conect"
+          psql -h postgres -U admin -d my_database -c "SELECT 1 AS conexion_ok"
